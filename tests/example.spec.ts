@@ -1,28 +1,29 @@
 import { test, expect } from '@playwright/test';
 
-test('has title', async ({ page }) => {
+test('search opens via keyboard shortcut', async ({ page }) => {
   await page.goto('https://playwright.dev/');
-
-  // Expect a title "to contain" a substring.
-  await expect(page).toHaveTitle(/Playwright/);
+  await page.keyboard.press('/');
+  await expect(page.getByRole('searchbox')).toBeVisible();
 });
 
-test('get started link', async ({ page }) => {
+test('navigation bar has expected number of links', async ({ page }) => {
   await page.goto('https://playwright.dev/');
-
-  // Click the get started link.
-  await page.getByRole('link', { name: 'Get started' }).click();
-
-  // Expects page to have a heading with the name of Installation.
-  await expect(page.getByRole('heading', { name: 'Installation' })).toBeVisible();
+  const navLinks = page.getByRole('navigation').getByRole('link');
+  await expect(navLinks).toHaveCount(7);
 });
 
-test('get community link', async ({ page }) => {
+test('homepage displays current release version', async ({ page }) => {
   await page.goto('https://playwright.dev/');
+  await expect(page.getByText('v1.')).toBeVisible();
+});
 
-  // Click the get community  link.
+test('community page has welcome heading', async ({ page }) => {
+  await page.goto('https://playwright.dev/');
   await page.getByRole('link', { name: 'Community' }).click();
+  await expect(page.getByRole('heading', { name: 'Welcome' })).toBeVisible();
+});
 
-  // Expects page to have a heading with the name of Installation.
-  await expect(page.getByRole('heading', { name: 'Wecome' })).toBeVisible();
+test('docs sidebar is visible on introduction page', async ({ page }) => {
+  await page.goto('https://playwright.dev/docs/intro', { waitUntil: 'commit' });
+  await expect(page.getByRole('navigation', { name: 'Docs sidebar' })).toBeVisible();
 });

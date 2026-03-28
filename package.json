@@ -1,15 +1,23 @@
 {
   "name": "test-poc-flaky",
   "version": "1.0.0",
-  "description": "",
+  "description": "Playwright test suite with flaky test identification",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "test": "playwright test",
+    "test:ci": "CI=true playwright test",
+    "flaky:analyze": "npx ts-node scripts/analyze-flaky.ts",
+    "flaky:analyze:recent": "npx ts-node scripts/analyze-flaky.ts --days 7",
+    "flaky:analyze:strict": "npx ts-node scripts/analyze-flaky.ts --min-runs 5"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
     "@playwright/test": "^1.58.2",
-    "@types/node": "^25.5.0"
+    "@types/node": "^25.5.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.0.0"
   }
 }

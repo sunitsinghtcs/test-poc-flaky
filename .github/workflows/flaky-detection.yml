@@ -1,0 +1,73 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# .github/workflows/flaky-detection.yml
+#
+# Runs Playwright tests with retries enabled and then analyses flakiness trends
+# across runs by caching the flaky-store.json between workflow executions.
+# ─────────────────────────────────────────────────────────────────────────────
+name: Flaky Test Detection
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # Nightly run to build up historical data faster.
+  schedule:
+    - cron: '0 2 * * *'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Restore the persisted flaky store across runs ────────────────────────
+      - name: Restore flaky store cache
+        uses: actions/cache@v4
+        with:
+          path: flaky-results/flaky-store.json
+          # Use a fixed key so the cache is always updated (restore-keys fallback).
+          key: flaky-store-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            flaky-store-${{ github.ref_name }}-
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      # ── Run the full test suite (retries=2 on CI via config) ─────────────────
+      - name: Run Playwright tests
+        run: npm run test:ci
+        # Don't fail here – let the analysis step decide.
+        continue-on-error: true
+
+      # ── Analyse cross-run flakiness ───────────────────────────────────────────
+      - name: Analyse flaky tests
+        run: npm run flaky:analyze:recent
+        # Exit code 1 = critical/high flakiness found → fails the job.
+
+      # ── Upload artefacts ──────────────────────────────────────────────────────
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload flaky store
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flaky-store
+          path: flaky-results/flaky-store.json
+          retention-days: 30

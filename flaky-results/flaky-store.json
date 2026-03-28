@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "records": [
+    {
+      "testId": "tests/example.spec.ts:: > chromium > example.spec.ts > community page has welcome heading::chromium",
+      "title": "community page has welcome heading",
+      "file": "tests/example.spec.ts",
+      "project": "chromium",
+      "runTimestamp": "2026-03-28T07:12:10.267Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": true,
+          "durationMs": 1737
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "passed"
+    },
+    {
+      "testId": "tests/example.spec.ts:: > chromium > example.spec.ts > docs sidebar is visible on introduction page::chromium",
+      "title": "docs sidebar is visible on introduction page",
+      "file": "tests/example.spec.ts",
+      "project": "chromium",
+      "runTimestamp": "2026-03-28T07:12:10.267Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": true,
+          "durationMs": 303
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "passed"
+    },
+    {
+      "testId": "tests/example.spec.ts:: > chromium > example.spec.ts > navigation bar has expected number of links::chromium",
+      "title": "navigation bar has expected number of links",
+      "file": "tests/example.spec.ts",
+      "project": "chromium",
+      "runTimestamp": "2026-03-28T07:12:10.267Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": false,
+          "durationMs": 6761,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed"
+        },
+        {
+          "attemptIndex": 1,
+          "passed": false,
+          "durationMs": 6373,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed"
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "failed"
+    },
+    {
+      "testId": "tests/example.spec.ts:: > chromium > example.spec.ts > homepage displays current release version::chromium",
+      "title": "homepage displays current release version",
+      "file": "tests/example.spec.ts",
+      "project": "chromium",
+      "runTimestamp": "2026-03-28T07:12:10.267Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": false,
+          "durationMs": 6768,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed"
+        },
+        {
+          "attemptIndex": 1,
+          "passed": false,
+          "durationMs": 6284,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed"
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "failed"
+    },
+    {
+      "testId": "tests/example.spec.ts:: > chromium > example.spec.ts > search opens via keyboard shortcut::chromium",
+      "title": "search opens via keyboard shortcut",
+      "file": "tests/example.spec.ts",
+      "project": "chromium",
+      "runTimestamp": "2026-03-28T07:12:10.267Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": false,
+          "durationMs": 6794,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed"
+        },
+        {
+          "attemptIndex": 1,
+          "passed": true,
+          "durationMs": 1480
+        }
+      ],
+      "flakyInThisRun": true,
+      "finalStatus": "passed"
+    }
+  ]
+}
