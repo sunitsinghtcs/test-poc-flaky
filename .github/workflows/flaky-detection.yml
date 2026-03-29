@@ -29,7 +29,7 @@ jobs:
           cache: 'npm'
 
       - name: Restore flaky store cache
-        uses: actions/cache@v4
+        uses: actions/cache@v4.2.3
         with:
           path: flaky-results/flaky-store.json
           key: flaky-store-${{ github.ref_name }}-${{ github.run_id }}
@@ -48,6 +48,7 @@ jobs:
 
       - name: Analyse flaky test trends
         run: npm run flaky:analyze
+        continue-on-error: true
 
       - name: Upload Playwright report
         if: always()
