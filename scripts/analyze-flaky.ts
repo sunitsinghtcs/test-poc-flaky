@@ -174,6 +174,38 @@ function printReport(summaries: FlakyTestSummary[]): void {
   console.log(SEP + '\n');
 }
 
+// ── Latest run snapshot ───────────────────────────────────────────────────────
+
+function printLatestRunSnapshot(tracker: FlakyTestTracker): void {
+  const latest = tracker.getLatestRunRecords();
+  if (latest.length === 0) return;
+
+  const ts        = latest[0].runTimestamp;
+  const flaky     = latest.filter((r) => r.flakyInThisRun);
+  const failed    = latest.filter((r) => r.finalStatus === 'failed' || r.finalStatus === 'timedOut');
+  const passed    = latest.filter((r) => !r.flakyInThisRun && r.finalStatus === 'passed');
+  const passRate  = Math.round((passed.length / latest.length) * 100);
+
+  console.log(`\n${SEP}`);
+  console.log('  🕐  LATEST RUN SNAPSHOT');
+  console.log(`  ${new Date(ts).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`);
+  console.log(SEP);
+  console.log(`  Total tests run : ${latest.length}  (this run only — per browser)`);
+  console.log(`  ✅ Passed clean  : ${passed.length}   (${passRate}%)`);
+  console.log(`  ⚠️  Flaky         : ${flaky.length}   (failed then passed on retry)`);
+  console.log(`  🔴 Failed        : ${failed.length}   (all retries exhausted)`);
+  if (flaky.length > 0) {
+    console.log('\n  Flaky in this run:');
+    flaky.forEach((r) => {
+      const failedAttempts = r.attempts.filter((a) => !a.passed).length;
+      console.log(`    ⚠️  [${r.project}] ${r.title}`);
+      console.log(`       Failed ${failedAttempts} attempt(s) before passing`);
+    });
+  }
+  console.log(SEP);
+  console.log('  ↓  Cross-run analysis below compares ALL recorded runs');
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 function main(): void {
@@ -181,17 +213,26 @@ function main(): void {
 
   const tracker = new FlakyTestTracker(storeDir);
   const analyzer = new FlakyAnalyzer(tracker);
+  const timestamps = tracker.getRunTimestamps();
 
-  console.log(`\n  Store : ${storeDir}`);
-  console.log(`  Total records in store : ${tracker.recordCount}`);
+  console.log(`\n  Store        : ${storeDir}`);
+  console.log(`  Total records: ${tracker.recordCount}`);
+  console.log(`  Runs recorded: ${timestamps.length}`);
+  if (timestamps.length > 0) {
+    console.log(`  First run    : ${new Date(timestamps[timestamps.length - 1]).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`);
+    console.log(`  Latest run   : ${new Date(timestamps[0]).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`);
+  }
+
+  // Show latest run snapshot first so it matches what FlakyReporter printed
+  printLatestRunSnapshot(tracker);
 
   let summaries: FlakyTestSummary[];
 
   if (days !== undefined) {
-    console.log(`  Analysing last ${days} day(s), min ${minRuns} run(s)`);
+    console.log(`\n  Scope: last ${days} day(s), min ${minRuns} run(s)`);
     summaries = analyzer.getFlakySince(days, { minRuns });
   } else {
-    console.log(`  Analysing all records, min ${minRuns} run(s)`);
+    console.log(`\n  Scope: all ${timestamps.length} run(s), min ${minRuns} run(s)`);
     summaries = analyzer.analyze({ minRuns });
   }
 

@@ -1,8 +1,10 @@
+node_modules/
+dist/
 
 # Playwright
-node_modules/
-/test-results/
-/playwright-report/
-/blob-report/
-/playwright/.cache/
-/playwright/.auth/
+playwright-report/
+test-results/
+blob-report/
+
+# Flaky store — persisted via GitHub Actions cache, not committed to git
+flaky-results/

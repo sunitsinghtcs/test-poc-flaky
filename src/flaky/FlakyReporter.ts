@@ -150,12 +150,13 @@ export default class FlakyReporter implements Reporter {
     if (flaky.length > 0) {
       console.log('\n  Flaky tests:');
       flaky.forEach((r) => {
-        const retries = r.attempts.length - 1;
+        const failedAttempts = r.attempts.filter((a) => !a.passed).length;
+        const totalAttempts  = r.attempts.length;
         console.log(`    ⚠️  [${r.project}] ${r.title}`);
-        console.log(`       File   : ${r.file}`);
-        console.log(`       Retries needed : ${retries}`);
+        console.log(`       File            : ${r.file}`);
+        console.log(`       Failed attempts : ${failedAttempts} of ${totalAttempts} (passed on attempt ${totalAttempts})`);
         const err = r.attempts.find((a) => !a.passed)?.errorMessage;
-        if (err) console.log(`       First error    : ${err.slice(0, 120)}`);
+        if (err) console.log(`       First error     : ${err.slice(0, 120)}`);
       });
     }
     console.log('──────────────────────────────────────\n');

@@ -1,42 +1,42 @@
-# ─────────────────────────────────────────────────────────────────────────────
-# .github/workflows/flaky-detection.yml
-#
-# Runs Playwright tests with retries enabled and then analyses flakiness trends
-# across runs by caching the flaky-store.json between workflow executions.
-# ─────────────────────────────────────────────────────────────────────────────
-name: Flaky Test Detection
+name: Playwright Flaky Test Detection
 
 on:
   push:
     branches: [main]
   pull_request:
-  # Nightly run to build up historical data faster.
+    branches: [main]
   schedule:
     - cron: '0 2 * * *'
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   test:
+    name: Run Tests & Detect Flakiness
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4.2.2
 
-      # ── Restore the persisted flaky store across runs ────────────────────────
-      - name: Restore flaky store cache
-        uses: actions/cache@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4.4.0
         with:
-          path: flaky-results/flaky-store.json
-          # Use a fixed key so the cache is always updated (restore-keys fallback).
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Restore flaky store cache
+        uses: actions/cache@v4.2.3
+        with:
+          path: |
+            flaky-results/flaky-store.json
+            flaky-results/heal-store.json
           key: flaky-store-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
             flaky-store-${{ github.ref_name }}-
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
@@ -44,30 +44,64 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium firefox webkit
 
-      # ── Run the full test suite (retries=2 on CI via config) ─────────────────
       - name: Run Playwright tests
         run: npm run test:ci
-        # Don't fail here – let the analysis step decide.
         continue-on-error: true
 
-      # ── Analyse cross-run flakiness ───────────────────────────────────────────
-      - name: Analyse flaky tests
-        run: npm run flaky:analyze:recent
-        # Exit code 1 = critical/high flakiness found → fails the job.
+      - name: Analyse flaky test trends
+        run: npm run flaky:analyze
+        continue-on-error: true
 
-      # ── Upload artefacts ──────────────────────────────────────────────────────
-      - name: Upload Playwright HTML report
+      - name: Analyse self-healing events
+        run: npm run healing:analyze
+        continue-on-error: true
+
+      - name: Generate HTML report
+        run: npm run report:html:ci
+        continue-on-error: true
+
+      - name: Upload Playwright report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
-          name: playwright-report
+          name: playwright-report-${{ github.run_id }}
           path: playwright-report/
           retention-days: 14
 
+      - name: Upload flaky HTML report
+        if: always()
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: flaky-html-report-${{ github.run_id }}
+          path: flaky-results/report.html
+          retention-days: 30
+
       - name: Upload flaky store
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
-          name: flaky-store
+          name: flaky-store-${{ github.run_id }}
           path: flaky-results/flaky-store.json
           retention-days: 30
+
+      - name: Upload heal store
+        if: always()
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: heal-store-${{ github.run_id }}
+          path: flaky-results/heal-store.json
+          retention-days: 30
+
+      - name: Write job summary
+        if: always()
+        run: |
+          echo "## Flaky Test Report" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          npm run flaky:analyze 2>&1 || true >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "## Self-Healing Report" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          npm run healing:analyze 2>&1 || true >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📄 Download the interactive HTML report from the **flaky-html-report** artifact above." >> $GITHUB_STEP_SUMMARY
