@@ -61,6 +61,19 @@ export class FlakyTestTracker {
     return this.store.records.length;
   }
 
+  /** Return all distinct run timestamps, newest first. */
+  getRunTimestamps(): string[] {
+    return [...new Set(this.store.records.map((r) => r.runTimestamp))];
+  }
+
+  /** Return only the records from the most recent run. */
+  getLatestRunRecords(): TestRunRecord[] {
+    const timestamps = this.getRunTimestamps();
+    if (timestamps.length === 0) return [];
+    const latest = timestamps[0];
+    return this.store.records.filter((r) => r.runTimestamp === latest);
+  }
+
   // ── Private helpers ────────────────────────────────────────────────────────
 
   private load(): FlakyStore {

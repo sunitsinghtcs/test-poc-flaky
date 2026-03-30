@@ -2,77 +2,54 @@
   "version": 1,
   "records": [
     {
-      "testId": "tests/example.spec.ts:: > chromium > example.spec.ts > community page has welcome heading::chromium",
+      "testId": "tests/playwright-dev.spec.ts:: > chromium > playwright-dev.spec.ts > community page has welcome heading::chromium",
       "title": "community page has welcome heading",
-      "file": "tests/example.spec.ts",
+      "file": "tests/playwright-dev.spec.ts",
       "project": "chromium",
-      "runTimestamp": "2026-03-28T07:12:10.267Z",
+      "runTimestamp": "2026-03-30T15:16:55.026Z",
       "attempts": [
         {
           "attemptIndex": 0,
           "passed": true,
-          "durationMs": 1737
+          "durationMs": 901
         }
       ],
       "flakyInThisRun": false,
       "finalStatus": "passed"
     },
     {
-      "testId": "tests/example.spec.ts:: > chromium > example.spec.ts > docs sidebar is visible on introduction page::chromium",
+      "testId": "tests/playwright-dev.spec.ts:: > chromium > playwright-dev.spec.ts > docs sidebar is visible on introduction page::chromium",
       "title": "docs sidebar is visible on introduction page",
-      "file": "tests/example.spec.ts",
+      "file": "tests/playwright-dev.spec.ts",
       "project": "chromium",
-      "runTimestamp": "2026-03-28T07:12:10.267Z",
+      "runTimestamp": "2026-03-30T15:16:55.026Z",
       "attempts": [
         {
           "attemptIndex": 0,
           "passed": true,
-          "durationMs": 303
+          "durationMs": 264
         }
       ],
       "flakyInThisRun": false,
       "finalStatus": "passed"
     },
     {
-      "testId": "tests/example.spec.ts:: > chromium > example.spec.ts > navigation bar has expected number of links::chromium",
-      "title": "navigation bar has expected number of links",
-      "file": "tests/example.spec.ts",
-      "project": "chromium",
-      "runTimestamp": "2026-03-28T07:12:10.267Z",
-      "attempts": [
-        {
-          "attemptIndex": 0,
-          "passed": false,
-          "durationMs": 6761,
-          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed"
-        },
-        {
-          "attemptIndex": 1,
-          "passed": false,
-          "durationMs": 6373,
-          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed"
-        }
-      ],
-      "flakyInThisRun": false,
-      "finalStatus": "failed"
-    },
-    {
-      "testId": "tests/example.spec.ts:: > chromium > example.spec.ts > homepage displays current release version::chromium",
+      "testId": "tests/playwright-dev.spec.ts:: > chromium > playwright-dev.spec.ts > homepage displays current release version::chromium",
       "title": "homepage displays current release version",
-      "file": "tests/example.spec.ts",
+      "file": "tests/playwright-dev.spec.ts",
       "project": "chromium",
-      "runTimestamp": "2026-03-28T07:12:10.267Z",
+      "runTimestamp": "2026-03-30T15:16:55.026Z",
       "attempts": [
         {
           "attemptIndex": 0,
           "passed": false,
-          "durationMs": 6768,
+          "durationMs": 5776,
           "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed"
         },
         {
           "attemptIndex": 1,
           "passed": false,
-          "durationMs": 6284,
+          "durationMs": 5604,
           "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed"
         }
       ],
@@ -80,25 +57,536 @@
       "finalStatus": "failed"
     },
     {
-      "testId": "tests/example.spec.ts:: > chromium > example.spec.ts > search opens via keyboard shortcut::chromium",
-      "title": "search opens via keyboard shortcut",
-      "file": "tests/example.spec.ts",
+      "testId": "tests/playwright-dev.spec.ts:: > chromium > playwright-dev.spec.ts > navigation bar has expected number of links::chromium",
+      "title": "navigation bar has expected number of links",
+      "file": "tests/playwright-dev.spec.ts",
       "project": "chromium",
-      "runTimestamp": "2026-03-28T07:12:10.267Z",
+      "runTimestamp": "2026-03-30T15:16:55.026Z",
       "attempts": [
         {
           "attemptIndex": 0,
           "passed": false,
-          "durationMs": 6794,
+          "durationMs": 5773,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed"
+        },
+        {
+          "attemptIndex": 1,
+          "passed": false,
+          "durationMs": 5604,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed"
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "failed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > chromium > playwright-dev.spec.ts > search opens via keyboard shortcut::chromium",
+      "title": "search opens via keyboard shortcut",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "chromium",
+      "runTimestamp": "2026-03-30T15:16:55.026Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": false,
+          "durationMs": 6009,
           "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed"
         },
         {
           "attemptIndex": 1,
           "passed": true,
-          "durationMs": 1480
+          "durationMs": 646
         }
       ],
       "flakyInThisRun": true,
+      "finalStatus": "passed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > firefox > playwright-dev.spec.ts > search opens via keyboard shortcut::firefox",
+      "title": "search opens via keyboard shortcut",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "firefox",
+      "runTimestamp": "2026-03-30T15:16:55.026Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": false,
+          "durationMs": 5923,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed"
+        },
+        {
+          "attemptIndex": 1,
+          "passed": true,
+          "durationMs": 1092
+        }
+      ],
+      "flakyInThisRun": true,
+      "finalStatus": "passed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > firefox > playwright-dev.spec.ts > docs sidebar is visible on introduction page::firefox",
+      "title": "docs sidebar is visible on introduction page",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "firefox",
+      "runTimestamp": "2026-03-30T15:16:55.026Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": true,
+          "durationMs": 773
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "passed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > firefox > playwright-dev.spec.ts > community page has welcome heading::firefox",
+      "title": "community page has welcome heading",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "firefox",
+      "runTimestamp": "2026-03-30T15:16:55.026Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": true,
+          "durationMs": 1123
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "passed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > firefox > playwright-dev.spec.ts > navigation bar has expected number of links::firefox",
+      "title": "navigation bar has expected number of links",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "firefox",
+      "runTimestamp": "2026-03-30T15:16:55.026Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": false,
+          "durationMs": 5939,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed"
+        },
+        {
+          "attemptIndex": 1,
+          "passed": false,
+          "durationMs": 6280,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed"
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "failed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > webkit > playwright-dev.spec.ts > search opens via keyboard shortcut::webkit",
+      "title": "search opens via keyboard shortcut",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "webkit",
+      "runTimestamp": "2026-03-30T15:16:55.026Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": true,
+          "durationMs": 1072
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "passed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > firefox > playwright-dev.spec.ts > homepage displays current release version::firefox",
+      "title": "homepage displays current release version",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "firefox",
+      "runTimestamp": "2026-03-30T15:16:55.026Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": false,
+          "durationMs": 5573,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed"
+        },
+        {
+          "attemptIndex": 1,
+          "passed": false,
+          "durationMs": 5987,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed"
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "failed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > webkit > playwright-dev.spec.ts > navigation bar has expected number of links::webkit",
+      "title": "navigation bar has expected number of links",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "webkit",
+      "runTimestamp": "2026-03-30T15:16:55.026Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": false,
+          "durationMs": 5874,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed"
+        },
+        {
+          "attemptIndex": 1,
+          "passed": false,
+          "durationMs": 5727,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed"
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "failed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > webkit > playwright-dev.spec.ts > homepage displays current release version::webkit",
+      "title": "homepage displays current release version",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "webkit",
+      "runTimestamp": "2026-03-30T15:16:55.026Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": false,
+          "durationMs": 5567,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed"
+        },
+        {
+          "attemptIndex": 1,
+          "passed": false,
+          "durationMs": 5677,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed"
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "failed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > webkit > playwright-dev.spec.ts > community page has welcome heading::webkit",
+      "title": "community page has welcome heading",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "webkit",
+      "runTimestamp": "2026-03-30T15:16:55.026Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": true,
+          "durationMs": 742
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "passed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > webkit > playwright-dev.spec.ts > docs sidebar is visible on introduction page::webkit",
+      "title": "docs sidebar is visible on introduction page",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "webkit",
+      "runTimestamp": "2026-03-30T15:16:55.026Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": true,
+          "durationMs": 340
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "passed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > chromium > playwright-dev.spec.ts > community page has welcome heading::chromium",
+      "title": "community page has welcome heading",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "chromium",
+      "runTimestamp": "2026-03-30T06:47:43.843Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": true,
+          "durationMs": 882
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "passed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > chromium > playwright-dev.spec.ts > docs sidebar is visible on introduction page::chromium",
+      "title": "docs sidebar is visible on introduction page",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "chromium",
+      "runTimestamp": "2026-03-30T06:47:43.843Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": true,
+          "durationMs": 274
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "passed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > chromium > playwright-dev.spec.ts > homepage displays current release version::chromium",
+      "title": "homepage displays current release version",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "chromium",
+      "runTimestamp": "2026-03-30T06:47:43.843Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": false,
+          "durationMs": 5735,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed"
+        },
+        {
+          "attemptIndex": 1,
+          "passed": false,
+          "durationMs": 5544,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed"
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "failed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > chromium > playwright-dev.spec.ts > search opens via keyboard shortcut::chromium",
+      "title": "search opens via keyboard shortcut",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "chromium",
+      "runTimestamp": "2026-03-30T06:47:43.843Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": false,
+          "durationMs": 5744,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed"
+        },
+        {
+          "attemptIndex": 1,
+          "passed": true,
+          "durationMs": 640
+        }
+      ],
+      "flakyInThisRun": true,
+      "finalStatus": "passed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > chromium > playwright-dev.spec.ts > navigation bar has expected number of links::chromium",
+      "title": "navigation bar has expected number of links",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "chromium",
+      "runTimestamp": "2026-03-30T06:47:43.843Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": false,
+          "durationMs": 5923,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed"
+        },
+        {
+          "attemptIndex": 1,
+          "passed": false,
+          "durationMs": 5527,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed"
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "failed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > firefox > playwright-dev.spec.ts > search opens via keyboard shortcut::firefox",
+      "title": "search opens via keyboard shortcut",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "firefox",
+      "runTimestamp": "2026-03-30T06:47:43.843Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": false,
+          "durationMs": 5882,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed"
+        },
+        {
+          "attemptIndex": 1,
+          "passed": true,
+          "durationMs": 1105
+        }
+      ],
+      "flakyInThisRun": true,
+      "finalStatus": "passed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > firefox > playwright-dev.spec.ts > docs sidebar is visible on introduction page::firefox",
+      "title": "docs sidebar is visible on introduction page",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "firefox",
+      "runTimestamp": "2026-03-30T06:47:43.843Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": true,
+          "durationMs": 802
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "passed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > firefox > playwright-dev.spec.ts > community page has welcome heading::firefox",
+      "title": "community page has welcome heading",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "firefox",
+      "runTimestamp": "2026-03-30T06:47:43.843Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": true,
+          "durationMs": 1219
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "passed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > firefox > playwright-dev.spec.ts > navigation bar has expected number of links::firefox",
+      "title": "navigation bar has expected number of links",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "firefox",
+      "runTimestamp": "2026-03-30T06:47:43.843Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": false,
+          "durationMs": 5912,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed"
+        },
+        {
+          "attemptIndex": 1,
+          "passed": false,
+          "durationMs": 6238,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed"
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "failed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > webkit > playwright-dev.spec.ts > search opens via keyboard shortcut::webkit",
+      "title": "search opens via keyboard shortcut",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "webkit",
+      "runTimestamp": "2026-03-30T06:47:43.843Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": true,
+          "durationMs": 972
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "passed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > firefox > playwright-dev.spec.ts > homepage displays current release version::firefox",
+      "title": "homepage displays current release version",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "firefox",
+      "runTimestamp": "2026-03-30T06:47:43.843Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": false,
+          "durationMs": 5555,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed"
+        },
+        {
+          "attemptIndex": 1,
+          "passed": false,
+          "durationMs": 6007,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed"
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "failed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > webkit > playwright-dev.spec.ts > navigation bar has expected number of links::webkit",
+      "title": "navigation bar has expected number of links",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "webkit",
+      "runTimestamp": "2026-03-30T06:47:43.843Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": false,
+          "durationMs": 5828,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed"
+        },
+        {
+          "attemptIndex": 1,
+          "passed": false,
+          "durationMs": 6634,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed"
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "failed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > webkit > playwright-dev.spec.ts > homepage displays current release version::webkit",
+      "title": "homepage displays current release version",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "webkit",
+      "runTimestamp": "2026-03-30T06:47:43.843Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": false,
+          "durationMs": 5564,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed"
+        },
+        {
+          "attemptIndex": 1,
+          "passed": false,
+          "durationMs": 5718,
+          "errorMessage": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed"
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "failed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > webkit > playwright-dev.spec.ts > community page has welcome heading::webkit",
+      "title": "community page has welcome heading",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "webkit",
+      "runTimestamp": "2026-03-30T06:47:43.843Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": true,
+          "durationMs": 805
+        }
+      ],
+      "flakyInThisRun": false,
+      "finalStatus": "passed"
+    },
+    {
+      "testId": "tests/playwright-dev.spec.ts:: > webkit > playwright-dev.spec.ts > docs sidebar is visible on introduction page::webkit",
+      "title": "docs sidebar is visible on introduction page",
+      "file": "tests/playwright-dev.spec.ts",
+      "project": "webkit",
+      "runTimestamp": "2026-03-30T06:47:43.843Z",
+      "attempts": [
+        {
+          "attemptIndex": 0,
+          "passed": true,
+          "durationMs": 337
+        }
+      ],
+      "flakyInThisRun": false,
       "finalStatus": "passed"
     }
   ]

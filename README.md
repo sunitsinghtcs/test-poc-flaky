@@ -168,6 +168,10 @@ Flaky tests are assigned a severity based on how often they fail:
 | Low | 5% – 10% | 🟢 |
 
 ---
+## github flaky report
+
+npm run report:html  
+open flaky-results/report.html
 
 ## GitHub Actions CI
 

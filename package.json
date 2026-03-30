@@ -1,14 +1,17 @@
 {
   "name": "test-poc-flaky",
   "version": "1.0.0",
-  "description": "Playwright test suite with flaky test identification",
+  "description": "Playwright test suite with flaky test identification and self-healing",
   "main": "index.js",
   "scripts": {
     "test": "playwright test",
     "test:ci": "CI=true playwright test",
     "flaky:analyze": "npx ts-node scripts/analyze-flaky.ts",
     "flaky:analyze:recent": "npx ts-node scripts/analyze-flaky.ts --days 7",
-    "flaky:analyze:strict": "npx ts-node scripts/analyze-flaky.ts --min-runs 5"
+    "flaky:analyze:strict": "npx ts-node scripts/analyze-flaky.ts --min-runs 5",
+    "healing:analyze": "npx ts-node scripts/analyze-healing.ts",
+    "report:html": "npx ts-node scripts/generate-html-report.ts",
+    "report:html:ci": "npx ts-node scripts/generate-html-report.ts --out ./flaky-results/report.html"
   },
   "keywords": [],
   "author": "",
