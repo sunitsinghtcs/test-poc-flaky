@@ -1,20 +1,20 @@
 # Flaky Test Identification System
 
-A TypeScript-based flaky test detection system built on top of Playwright. It automatically tracks test results across runs, identifies non-deterministic tests, and generates a full health report — both locally and in GitHub Actions CI.
+A TypeScript system built on Playwright that automatically tracks test results, scores each test for stability, detects trend direction, and generates an interactive executive HTML report.
 
 ---
 
-## What Is a Flaky Test?
+## Features
 
-A flaky test is one that produces inconsistent results without any code change — sometimes passing, sometimes failing. Flaky tests erode trust in your test suite and slow down development.
-
-This system identifies three categories of tests:
-
-| Category | Description |
+| Feature | Description |
 |---|---|
-| 🔴 Consistently Failing | Fails on every run even after all retries |
-| ⚠️ Flaky | Fails on first attempt but passes on retry — non-deterministic |
-| ✅ Clean | Always passes on the first attempt |
+| ✅ Flaky detection | Identifies tests that fail then pass on retry |
+| 🔴 Category scoring | Consistently Failing / Flaky / Clean |
+| ⭐ **Stability Score** | Per-test 0–100 score (Apple flip rate algorithm) |
+| 📈 **Trend Detection** | Rising / Stable / Recovering / New per test |
+| 🩹 Self-healing | Auto-recovers broken locators using 11 fallback strategies |
+| 📊 HTML Dashboard | Interactive executive report with charts, scoring, filtering |
+| 🔁 CI/CD ready | GitHub Actions workflow with store caching |
 
 ---
 
@@ -24,191 +24,129 @@ This system identifies three categories of tests:
 test-poc-flaky/
 ├── src/
 │   └── flaky/
-│       ├── types.ts              # Shared TypeScript interfaces
-│       ├── FlakyTestTracker.ts   # Reads/writes flaky-store.json
-│       ├── FlakyReporter.ts      # Custom Playwright reporter
-│       ├── FlakyAnalyzer.ts      # Cross-run analysis engine
-│       └── index.ts              # Barrel exports
+│       ├── scoring/
+│       │   ├── types.ts              ← StabilityResult, TrendResult, RunOutcome
+│       │   ├── StabilityScorer.ts    ← Feature 1: Apple flip rate algorithm
+│       │   ├── TrendDetector.ts      ← Feature 3: Rising/Stable/Recovering
+│       │   └── index.ts
+│       ├── healing/
+│       │   ├── types.ts
+│       │   ├── HealingStore.ts
+│       │   ├── SelfHealingLocator.ts
+│       │   └── selfHealingTest.ts
+│       ├── types.ts                  ← All shared interfaces
+│       ├── FlakyTestTracker.ts       ← Reads/writes flaky-store.json
+│       ├── FlakyReporter.ts          ← Custom Playwright reporter
+│       ├── FlakyAnalyzer.ts          ← Analysis engine (uses scorer + detector)
+│       └── index.ts
 ├── scripts/
-│   └── analyze-flaky.ts          # CLI report tool
+│   ├── analyze-flaky.ts              ← CLI report with scores & trends
+│   ├── analyze-healing.ts            ← CLI healing events report
+│   └── generate-html-report.ts      ← Interactive HTML dashboard generator
 ├── tests/
-│   ├── example.spec.ts           # Original tests
-│   └── playwright-dev.spec.ts    # Additional test scenarios
-├── .github/
-│   └── workflows/
-│       └── flaky-detection.yml   # GitHub Actions CI workflow
-├── playwright.config.ts          # Playwright config with FlakyReporter wired in
+│   ├── example.spec.ts
+│   └── playwright-dev.spec.ts
+├── .github/workflows/
+│   └── flaky-detection.yml
+├── playwright.config.ts
 ├── tsconfig.json
 └── package.json
 ```
 
 ---
 
-## How It Works
+## Feature 1 — Stability Score (0–100)
+
+Based on Apple's flip rate algorithm from *"Modeling and Ranking Flaky Tests at Apple"* (ICSE 2022).
+
+### How it works
 
 ```
-npx playwright test
-        ↓
-FlakyReporter hooks into every test result
-        ↓
-Captures pass/fail per attempt including retries
-        ↓
-Writes results to flaky-results/flaky-store.json
-        ↓
-npm run flaky:analyze
-        ↓
-FlakyAnalyzer reads store → prints full health report
+1. Convert each run to an outcome: pass | flaky | fail
+2. Walk consecutive pairs — count how many times the outcome changed
+3. flipRate = stateChanges / (totalRuns - 1)
+4. stabilityScore = round((1 - flipRate) * 100)
 ```
 
-The store accumulates data across multiple runs. The more runs recorded, the more accurate the flakiness rates become.
+### Score bands
 
----
-
-## Getting Started
-
-### Install dependencies
-
-```bash
-npm install
-npx playwright install --with-deps
-```
-
-### Run tests
-
-```bash
-npx playwright test
-```
-
-After every run, the `FlakyReporter` automatically prints a per-run summary:
-
-```
-──────────────────────────────────────
-  🔍  Flaky Test Report (this run)
-──────────────────────────────────────
-  Total tests                : 12
-  Flaky (passed after retry) : 2
-  Failed (all retries)       : 1
-──────────────────────────────────────
-```
-
-Results are saved to `flaky-results/flaky-store.json`.
-
-### Analyse cross-run trends
-
-```bash
-# Full history
-npm run flaky:analyze
-
-# Last 7 days only
-npm run flaky:analyze:recent
-
-# Stricter threshold — minimum 5 runs
-npm run flaky:analyze:strict
-```
-
----
-
-## Sample Report Output
-
-```
-────────────────────────────────────────────────────────────────────────────────
-  📊  Full Test Health Report
-────────────────────────────────────────────────────────────────────────────────
-  Total tests tracked      : 12
-  🔴 Consistently failing  : 1
-  ⚠️  Flaky                : 2
-  ✅ Clean                 : 9
-
-────────────────────────────────────────────────────────────────────────────────
-  🔴  CONSISTENTLY FAILING
-────────────────────────────────────────────────────────────────────────────────
-
-    Test   : get community link
-    File   : tests/example.spec.ts
-    Project: chromium
-    Runs   : 4 total  |  4 failed  |  0 flaky  |  0 clean
-    Fail rate: ████████████████████ 100.0%
-
-────────────────────────────────────────────────────────────────────────────────
-  ⚠️   FLAKY  (passed on retry after failing)
-────────────────────────────────────────────────────────────────────────────────
-  Severity thresholds:
-    🔴 Critical — flaky 50%+ of the time
-    🟠 High     — flaky 25–50% of the time
-    🟡 Medium   — flaky 10–25% of the time
-    🟢 Low      — flaky  5–10% of the time
-
-  🔴 [CRITICAL]
-    Test   : search opens via keyboard shortcut
-    File   : tests/playwright-dev.spec.ts
-    Project: chromium
-    Runs   : 4 total  |  0 failed  |  4 flaky  |  0 clean
-    Flaky rt: ████████████████████ 100.0%
-
-────────────────────────────────────────────────────────────────────────────────
-  ✅  CLEAN  (always passed on first attempt)
-────────────────────────────────────────────────────────────────────────────────
-
-    ✅ has title
-    ✅ get started link
-    ...
-```
-
----
-
-## Severity Thresholds
-
-Flaky tests are assigned a severity based on how often they fail:
-
-| Severity | Flaky Rate | Icon |
+| Score | Label | Meaning |
 |---|---|---|
-| Critical | 50% or more | 🔴 |
-| High | 25% – 50% | 🟠 |
-| Medium | 10% – 25% | 🟡 |
-| Low | 5% – 10% | 🟢 |
+| 90–100 | Highly Stable | Rarely or never changes outcome |
+| 70–89 | Mostly Stable | Occasional inconsistency |
+| 50–69 | Moderately Unstable | Worth investigating |
+| 25–49 | Highly Unstable | Fix soon |
+| 0–24 | Critical | Changes on almost every consecutive run |
+
+### Example
+
+```
+Runs (oldest → newest): pass, pass, flaky, pass, fail, pass
+Outcome history:        P  P  F  P  X  P
+State changes:             0  1  1  1  1  = 4 changes out of 5 pairs
+flipRate = 4/5 = 0.80
+stabilityScore = round((1 - 0.80) × 100) = 20  → Critical
+```
 
 ---
-## github flaky report
 
-npm run report:html  
+## Feature 3 — Trend Detection
+
+Compares the instability rate of the most recent 5 runs against the 5 runs before that.
+
+```
+instabilityRate = (flaky + failed) / total  per window
+
+delta = recentInstability - prevInstability
+
+delta > +0.15  →  Rising     (getting worse)    ⬆️
+delta < -0.15  →  Recovering (getting better)   ⬇️
+else           →  Stable                         →
+totalRuns < 4  →  New        (not enough data)  🆕
+```
+
+### Why this matters
+
+A test that was flaky 3 months ago but has been clean for 2 weeks has a **Recovering** trend — low urgency. A test that just started flaking this week has a **Rising** trend — high urgency, fix now.
+
+---
+
+## CLI Report Output
+
+Running `npm run flaky:analyze` now shows:
+
+```
+#1  Score: 0/100   Trend: ⬆️ rising       ⚠️ Flaky    🔴 critical   4 runs   search opens via keyboard shortcut
+#2  Score: 0/100   Trend: → stable        🔴 Failing  —             4 runs   navigation bar has expected number of links
+#3  Score: 100/100 Trend: → stable        ✅ Clean    —             4 runs   community page has welcome heading
+
+  History : ⚠️ ⚠️ ⚠️ ⚠️  (oldest → newest)
+  Score   : 🔴 0/100  ████████░░░░░░░░░░░░  (Critical)
+  Flip Rt : ████████████░░░░░░░░ 60.0%
+  Trend   : ⬆️ Rising  (recent 100% vs prev 80% — +20% worse)
+```
+
+---
+
+## HTML Report
+
+The interactive HTML dashboard now includes:
+
+- **Latest Run Banner** — matches exactly what FlakyReporter printed
+- **KPIs** — Avg Stability Score, Rising Trend count
+- **Stability Score Distribution** — bar chart bucketed into 5 bands
+- **Trend Breakdown** — Rising / Stable / Recovering / New counts
+- **Test Table** with new columns:
+  - Score ring (animated, color-coded)
+  - Trend badge (Rising / Stable / Recovering / New)
+  - Outcome history dots (last 8 runs: 🟢pass / 🟡flaky / 🔴fail)
+- **Filter pills** — now includes ⬆️ Rising and ⬇️ Recovering filters
+- **Sort options** — sort by Score ↑ (worst first) or Trend
+
+```bash
+npm run report:html
 open flaky-results/report.html
-
-## GitHub Actions CI
-
-The workflow runs automatically on every push to `main`, every pull request, and nightly at 2am UTC.
-
-### What the workflow does
-
-1. Restores the flaky store from cache (preserves history across runs)
-2. Installs dependencies and Playwright browsers
-3. Runs the full test suite with retries enabled
-4. Runs the flaky analyzer and prints the report
-5. Uploads the Playwright HTML report as a downloadable artifact
-6. Uploads the flaky store JSON as a downloadable artifact
-7. Writes the flaky report to the GitHub Actions job summary
-
-### Viewing results in GitHub
-
-After a workflow run navigate to:
-
 ```
-Actions → <workflow run> → Summary
-```
-
-The full flaky report is embedded directly in the job summary — no need to download any artifacts.
-
-### Artifacts available per run
-
-| Artifact | Contents | Retained for |
-|---|---|---|
-| `playwright-report-<run_id>` | HTML test report | 14 days |
-| `flaky-store-<run_id>` | Raw JSON store | 30 days |
-
-### Flaky store caching
-
-The `flaky-results/flaky-store.json` file is cached between workflow runs using `actions/cache`. This is what enables cross-run trend analysis — without it, history would reset on every run.
-
-The cache is scoped per branch so `main` and feature branches track flakiness independently.
 
 ---
 
@@ -217,47 +155,41 @@ The cache is scoped per branch so `main` and feature branches track flakiness in
 | Script | Description |
 |---|---|
 | `npm test` | Run tests locally |
-| `npm run test:ci` | Run tests in CI mode (retries: 2, workers: 1) |
-| `npm run flaky:analyze` | Full cross-run flaky report |
-| `npm run flaky:analyze:recent` | Report for the last 7 days |
-| `npm run flaky:analyze:strict` | Report with minimum 5 runs threshold |
+| `npm run test:ci` | Run in CI mode (retries: 2) |
+| `npm run flaky:analyze` | Full CLI report with scores + trends |
+| `npm run flaky:analyze:recent` | Last 7 days |
+| `npm run flaky:analyze:strict` | Min 5 runs |
+| `npm run healing:analyze` | Self-healing events report |
+| `npm run report:html` | Generate interactive HTML dashboard |
+| `npm run report:open` | Generate + open in browser (Mac) |
 
 ---
 
-## Configuration
+## How Retries Enable Detection
 
-### Playwright config
-
-`FlakyReporter` is wired in via `playwright.config.ts`:
-
-```ts
-reporter: [
-  ['html'],
-  [
-    './src/flaky/FlakyReporter',
-    {
-      storeDir: './flaky-results',   // where store is written
-      pruneAfterDays: 90,            // auto-remove records older than 90 days
-      printSummary: true,            // print summary after each run
-    },
-  ],
-],
+```
+Attempt 1  →  ❌ FAIL
+Attempt 2  →  ✅ PASS  ←  flaky! same code, different result
 ```
 
-### Retries
-
-Retries must be enabled for flaky detection to work:
-
-```ts
-retries: process.env.CI ? 2 : 1,
-```
-
-A test can only be identified as flaky if it gets at least one retry to recover on.
+`retries: 1` is required in `playwright.config.ts`. Without retries a flaky test looks identical to a broken test.
 
 ---
 
-## Important Notes
+## Store Files
 
-- **Do not commit `flaky-results/`** — it is in `.gitignore` and persisted via GitHub Actions cache instead
-- **Clear the store** if you want to reset history: `rm flaky-results/flaky-store.json`
-- **Minimum runs** — a test needs at least 1 run recorded before it appears in the report. Use `--min-runs 3` for more reliable rates
+| File | Contents | Committed? |
+|---|---|---|
+| `flaky-results/flaky-store.json` | All run records | ❌ gitignored, cached in CI |
+| `flaky-results/heal-store.json` | Self-healing events | ❌ gitignored, cached in CI |
+| `flaky-results/report.html` | Generated dashboard | ❌ gitignored, uploaded as artifact |
+
+---
+
+## Clear Store
+
+```bash
+rm flaky-results/flaky-store.json
+```
+
+Use this when old records from renamed test files are polluting the report.

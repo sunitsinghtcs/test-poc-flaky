@@ -4,245 +4,248 @@
 //
 // Usage:
 //   npx ts-node scripts/analyze-flaky.ts
-//   npx ts-node scripts/analyze-flaky.ts --days 30 --min-runs 1
-//
-// Flags:
-//   --days      N    Only analyse records from the last N days  (default: all)
-//   --min-runs  N    Minimum runs before a test is reported     (default: 1)
-//   --store-dir DIR  Directory of flaky-store.json              (default: ./flaky-results)
+//   npx ts-node scripts/analyze-flaky.ts --days 7 --min-runs 3
 // ─────────────────────────────────────────────────────────────────────────────
 import * as path from 'path';
 import { FlakyTestTracker } from '../src/flaky/FlakyTestTracker';
-import { FlakyAnalyzer } from '../src/flaky/FlakyAnalyzer';
+import { FlakyAnalyzer }    from '../src/flaky/FlakyAnalyzer';
+import { StabilityScorer }  from '../src/flaky/scoring/StabilityScorer';
+import { TrendDetector }    from '../src/flaky/scoring/TrendDetector';
 import type { FlakyTestSummary } from '../src/flaky/types';
 
-// ── Argument parsing ──────────────────────────────────────────────────────────
-
-function parseArgs(): { days?: number; minRuns: number; storeDir: string } {
+// ── Args ──────────────────────────────────────────────────────────────────────
+function parseArgs() {
   const args = process.argv.slice(2);
-  const get = (flag: string): string | undefined => {
-    const idx = args.indexOf(flag);
-    return idx !== -1 ? args[idx + 1] : undefined;
-  };
+  const get  = (f: string) => { const i = args.indexOf(f); return i !== -1 ? args[i+1] : undefined; };
   return {
-    days: get('--days') ? Number(get('--days')) : undefined,
-    minRuns: Number(get('--min-runs') ?? 1),
+    days    : get('--days')      ? Number(get('--days'))      : undefined,
+    minRuns : Number(get('--min-runs') ?? 1),
     storeDir: get('--store-dir') ?? path.join(process.cwd(), 'flaky-results'),
   };
 }
 
-// ── Formatting helpers ────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const SEP  = '─'.repeat(80);
+const SEP2 = '─'.repeat(40);
 
-function pct(rate: number): string {
-  return (rate * 100).toFixed(1) + '%';
-}
+function pct(r: number)  { return (r * 100).toFixed(1) + '%'; }
+function dur(ms: number) { return (ms / 1000).toFixed(2) + 's'; }
 
 function bar(rate: number, width = 20): string {
   const filled = Math.round(rate * width);
   return '█'.repeat(filled) + '░'.repeat(width - filled);
 }
 
-const SEP = '─'.repeat(80);
+function scoreBar(score: number, width = 20): string {
+  const filled = Math.round((score / 100) * width);
+  return '█'.repeat(filled) + '░'.repeat(width - filled);
+}
 
-function printTestDetail(s: FlakyTestSummary, rateLabel: string, rate: number): void {
-  console.log(`\n    Test   : ${s.title}`);
-  console.log(`    File   : ${s.file}`);
-  console.log(`    Project: ${s.project}`);
-  console.log(
-    `    Runs   : ${s.totalRuns} total  |  ` +
-    `${s.failedRuns} failed  |  ` +
-    `${s.flakyRuns} flaky  |  ` +
-    `${s.cleanPassRuns} clean`
-  );
-  console.log(`    ${rateLabel.padEnd(8)}: ${bar(rate)} ${pct(rate)}`);
-  console.log(`    Avg dur: ${(s.avgDurationMs / 1000).toFixed(2)}s`);
+function scoreColor(score: number): string {
+  if (score >= 90) return '✅';
+  if (score >= 70) return '🟢';
+  if (score >= 50) return '🟡';
+  if (score >= 25) return '🟠';
+  return '🔴';
+}
+
+// ── Latest run snapshot ───────────────────────────────────────────────────────
+function printLatestRunSnapshot(tracker: FlakyTestTracker): void {
+  const latest = tracker.getLatestRunRecords();
+  if (!latest.length) return;
+
+  const ts       = latest[0].runTimestamp;
+  const flaky    = latest.filter((r) => r.flakyInThisRun);
+  const failed   = latest.filter((r) => r.finalStatus === 'failed' || r.finalStatus === 'timedOut');
+  const passed   = latest.filter((r) => !r.flakyInThisRun && r.finalStatus === 'passed');
+  const passRate = Math.round((passed.length / latest.length) * 100);
+
+  console.log(`\n${SEP}`);
+  console.log('  🕐  LATEST RUN SNAPSHOT');
+  console.log(`  ${new Date(ts).toLocaleString('en-US', { dateStyle:'medium', timeStyle:'short' })}`);
+  console.log(SEP);
+  console.log(`  Total  : ${latest.length}  |  ✅ Passed: ${passed.length} (${passRate}%)  |  ⚠️  Flaky: ${flaky.length}  |  🔴 Failed: ${failed.length}`);
+  if (flaky.length > 0) {
+    console.log('\n  Flaky in this run:');
+    flaky.forEach((r) => {
+      const failedAttempts = r.attempts.filter((a) => !a.passed).length;
+      console.log(`    ⚠️  [${r.project}] ${r.title} — ${failedAttempts} failed attempt(s) before passing`);
+    });
+  }
+  console.log(SEP);
+  console.log('  ↓  Cross-run analysis below');
+}
+
+// ── Print one test detail ─────────────────────────────────────────────────────
+const SEVERITY_ICON = { critical:'🔴', high:'🟠', medium:'🟡', low:'🟢' } as const;
+
+function printTestDetail(s: FlakyTestSummary): void {
+  const trendLabel = TrendDetector.label(s.trend);
+  const scoreLbl   = StabilityScorer.label(s.stabilityScore);
+
+  console.log(`\n    Test    : ${s.title}`);
+  console.log(`    File    : ${s.file}  |  Project: ${s.project}`);
+  console.log(`    Runs    : ${s.totalRuns} total  |  ${s.failedRuns} failed  |  ${s.flakyRuns} flaky  |  ${s.cleanPassRuns} clean`);
+
+  // Feature 1 — Stability Score
+  console.log(`    Score   : ${scoreColor(s.stabilityScore)} ${s.stabilityScore}/100  ${scoreBar(s.stabilityScore)}  (${scoreLbl})`);
+  console.log(`    Flip Rt : ${bar(s.flipRate)} ${pct(s.flipRate)}  — changes outcome ${pct(s.flipRate)} of consecutive runs`);
+
+  // Outcome history visualised
+  const histStr = s.outcomeHistory
+    .map((o) => o === 'pass' ? '✅' : o === 'flaky' ? '⚠️' : '❌')
+    .join(' ');
+  console.log(`    History : ${histStr}  (oldest → newest)`);
+
+  // Feature 3 — Trend
+  const deltaStr = s.trendDelta > 0
+    ? `+${pct(s.trendDelta)} worse`
+    : s.trendDelta < 0
+      ? `${pct(s.trendDelta)} better`
+      : 'no change';
+  console.log(`    Trend   : ${trendLabel}  (recent ${pct(s.recentInstability)} vs prev ${pct(s.prevInstability)} — ${deltaStr})`);
+
+  if (s.category === 'flaky' || s.category === 'consistently_failing') {
+    const rate = s.category === 'flaky' ? s.flakyRate : s.failureRate;
+    const label = s.category === 'flaky' ? 'Flaky rt' : 'Fail rt ';
+    console.log(`    ${label}: ${bar(rate)} ${pct(rate)}`);
+  }
+
+  console.log(`    Avg dur : ${dur(s.avgDurationMs)}`);
+
   if (s.recentErrors.length > 0) {
-    console.log('    Errors :');
-    s.recentErrors.forEach((e) => console.log(`             • ${e.slice(0, 100)}`));
+    console.log('    Errors  :');
+    s.recentErrors.forEach((e) => console.log(`              • ${e.slice(0, 100)}`));
   }
 }
 
+// ── Full report ───────────────────────────────────────────────────────────────
 function printReport(summaries: FlakyTestSummary[]): void {
   const failing = summaries.filter((s) => s.category === 'consistently_failing');
   const flaky   = summaries.filter((s) => s.category === 'flaky');
   const clean   = summaries.filter((s) => s.category === 'clean');
 
   console.log(`\n${SEP}`);
-  console.log('  📊  Full Test Health Report');
+  console.log('  📊  FULL TEST HEALTH REPORT');
   console.log(SEP);
   console.log(`  Total tests tracked : ${summaries.length}`);
   console.log(`  🔴 Consistently failing : ${failing.length}`);
   console.log(`  ⚠️  Flaky               : ${flaky.length}`);
   console.log(`  ✅ Clean               : ${clean.length}`);
 
-  // ── Section 1: Consistently Failing ────────────────────────────────────────
+  // ── Consistently Failing ─────────────────────────────────────────────────
   console.log(`\n${SEP}`);
   console.log('  🔴  CONSISTENTLY FAILING');
-  console.log(`  These tests failed on every run (all retries exhausted)`);
   console.log(SEP);
-
-  if (failing.length === 0) {
-    console.log('  ✅  None — no consistently failing tests!\n');
+  if (!failing.length) {
+    console.log('  ✅  None!\n');
   } else {
-    failing.forEach((s) => printTestDetail(s, 'Fail rate', s.failureRate));
+    failing.forEach((s) => printTestDetail(s));
     console.log('');
   }
 
-  // ── Section 2: Flaky ───────────────────────────────────────────────────────
+  // ── Flaky ────────────────────────────────────────────────────────────────
   console.log(SEP);
   console.log('  ⚠️   FLAKY  (passed on retry after failing)');
-  console.log(`  These tests are non-deterministic — sometimes pass, sometimes fail`);
   console.log(SEP);
-  console.log('  Severity thresholds:');
-  console.log('    🔴 Critical — flaky 50%+ of the time');
-  console.log('    🟠 High     — flaky 25–50% of the time');
-  console.log('    🟡 Medium   — flaky 10–25% of the time');
-  console.log('    🟢 Low      — flaky  5–10% of the time');
+  console.log('  Severity:  🔴 Critical ≥50%  🟠 High 25–50%  🟡 Medium 10–25%  🟢 Low 5–10%');
+  console.log('  Score   :  ✅ 90–100  🟢 70–89  🟡 50–69  🟠 25–49  🔴 0–24');
+  console.log('  Trend   :  ⬆️ Rising  → Stable  ⬇️ Recovering  🆕 New');
   console.log('');
-
-  if (flaky.length === 0) {
-    console.log('  ✅  None — no flaky tests!\n');
+  if (!flaky.length) {
+    console.log('  ✅  None!\n');
   } else {
-    const SEVERITY_ICON = { critical: '🔴', high: '🟠', medium: '🟡', low: '🟢' };
     flaky.forEach((s) => {
       console.log(`  ${SEVERITY_ICON[s.severity]} [${s.severity.toUpperCase()}]`);
-      printTestDetail(s, 'Flaky rt', s.flakyRate);
+      printTestDetail(s);
     });
     console.log('');
   }
 
-  // ── Section 3: Clean ───────────────────────────────────────────────────────
+  // ── Clean ────────────────────────────────────────────────────────────────
   console.log(SEP);
-  console.log('  ✅  CLEAN  (always passed on first attempt)');
+  console.log('  ✅  CLEAN');
   console.log(SEP);
-
-  if (clean.length === 0) {
-    console.log('  (no clean tests recorded yet)\n');
+  if (!clean.length) {
+    console.log('  (none yet)\n');
   } else {
     clean.forEach((s) => {
-      console.log(`\n    ✅ ${s.title}`);
-      console.log(`       File   : ${s.file}  |  Project: ${s.project}`);
-      console.log(`       Runs   : ${s.totalRuns}  |  Avg dur: ${(s.avgDurationMs / 1000).toFixed(2)}s`);
+      const trendLabel = TrendDetector.label(s.trend);
+      console.log(`\n    ✅ ${s.title}  [${s.project}]`);
+      console.log(`       Score: ${s.stabilityScore}/100  |  Trend: ${trendLabel}  |  Runs: ${s.totalRuns}  |  Avg: ${dur(s.avgDurationMs)}`);
     });
     console.log('');
   }
 
-  // ── Summary Table ──────────────────────────────────────────────────────────
+  // ── Ranked summary table ─────────────────────────────────────────────────
   console.log(SEP);
-  console.log('  SUMMARY TABLE');
+  console.log('  RANKED SUMMARY  (sorted by stability score — worst first within category)');
   console.log(SEP);
   console.log(
     '  ' +
+    'Rank'.padEnd(6) +
+    'Score'.padEnd(8) +
+    'Trend'.padEnd(16) +
     'Status'.padEnd(24) +
-    'Severity'.padEnd(12) +
-    'Rate'.padEnd(14) +
+    'Sev'.padEnd(10) +
     'Runs'.padEnd(7) +
     'Title'
   );
-  console.log('  ' + '─'.repeat(80));
+  console.log('  ' + '─'.repeat(90));
 
-  const categoryLabel: Record<FlakyTestSummary['category'], string> = {
-    consistently_failing: '🔴 Consistently Failing',
-    flaky:                '⚠️  Flaky              ',
-    clean:                '✅ Clean              ',
-  };
-
-  const SEVERITY_ICON_TABLE = { critical: '🔴', high: '🟠', medium: '🟡', low: '🟢' };
-
-  summaries.forEach((s) => {
-    let rateStr: string;
-    if (s.category === 'consistently_failing') {
-      rateStr = `Fail ${pct(s.failureRate)}`;
-    } else if (s.category === 'flaky') {
-      rateStr = `Flaky ${pct(s.flakyRate)}`;
-    } else {
-      rateStr = `Pass ${pct(s.cleanPassRuns / s.totalRuns)}`;
-    }
-    const severityStr = s.category === 'flaky'
-      ? `${SEVERITY_ICON_TABLE[s.severity]} ${s.severity}`.padEnd(12)
-      : '—'.padEnd(12);
+  summaries.forEach((s, i) => {
+    const catLabel: Record<string,string> = {
+      consistently_failing: '🔴 Failing ',
+      flaky                : '⚠️  Flaky  ',
+      clean                : '✅ Clean  ',
+    };
+    const sevStr = s.category === 'flaky'
+      ? `${SEVERITY_ICON[s.severity]} ${s.severity}`.padEnd(10)
+      : '—'.padEnd(10);
     console.log(
       '  ' +
-      categoryLabel[s.category] + '  ' +
-      severityStr +
-      rateStr.padEnd(14) +
+      `#${i+1}`.padEnd(6) +
+      `${s.stabilityScore}/100`.padEnd(8) +
+      `${TrendDetector.icon(s.trend)} ${s.trend}`.padEnd(16) +
+      catLabel[s.category].padEnd(24) +
+      sevStr +
       String(s.totalRuns).padEnd(7) +
-      s.title.slice(0, 40)
+      s.title.slice(0, 42)
     );
   });
 
   console.log(SEP + '\n');
 }
 
-// ── Latest run snapshot ───────────────────────────────────────────────────────
-
-function printLatestRunSnapshot(tracker: FlakyTestTracker): void {
-  const latest = tracker.getLatestRunRecords();
-  if (latest.length === 0) return;
-
-  const ts        = latest[0].runTimestamp;
-  const flaky     = latest.filter((r) => r.flakyInThisRun);
-  const failed    = latest.filter((r) => r.finalStatus === 'failed' || r.finalStatus === 'timedOut');
-  const passed    = latest.filter((r) => !r.flakyInThisRun && r.finalStatus === 'passed');
-  const passRate  = Math.round((passed.length / latest.length) * 100);
-
-  console.log(`\n${SEP}`);
-  console.log('  🕐  LATEST RUN SNAPSHOT');
-  console.log(`  ${new Date(ts).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`);
-  console.log(SEP);
-  console.log(`  Total tests run : ${latest.length}  (this run only — per browser)`);
-  console.log(`  ✅ Passed clean  : ${passed.length}   (${passRate}%)`);
-  console.log(`  ⚠️  Flaky         : ${flaky.length}   (failed then passed on retry)`);
-  console.log(`  🔴 Failed        : ${failed.length}   (all retries exhausted)`);
-  if (flaky.length > 0) {
-    console.log('\n  Flaky in this run:');
-    flaky.forEach((r) => {
-      const failedAttempts = r.attempts.filter((a) => !a.passed).length;
-      console.log(`    ⚠️  [${r.project}] ${r.title}`);
-      console.log(`       Failed ${failedAttempts} attempt(s) before passing`);
-    });
-  }
-  console.log(SEP);
-  console.log('  ↓  Cross-run analysis below compares ALL recorded runs');
-}
-
 // ── Main ──────────────────────────────────────────────────────────────────────
-
 function main(): void {
   const { days, minRuns, storeDir } = parseArgs();
 
-  const tracker = new FlakyTestTracker(storeDir);
-  const analyzer = new FlakyAnalyzer(tracker);
+  const tracker    = new FlakyTestTracker(storeDir);
+  const analyzer   = new FlakyAnalyzer(tracker);
   const timestamps = tracker.getRunTimestamps();
 
   console.log(`\n  Store        : ${storeDir}`);
-  console.log(`  Total records: ${tracker.recordCount}`);
+  console.log(`  Records      : ${tracker.recordCount}`);
   console.log(`  Runs recorded: ${timestamps.length}`);
   if (timestamps.length > 0) {
-    console.log(`  First run    : ${new Date(timestamps[timestamps.length - 1]).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`);
-    console.log(`  Latest run   : ${new Date(timestamps[0]).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`);
+    console.log(`  First run    : ${new Date(timestamps[timestamps.length-1]).toLocaleString('en-US',{dateStyle:'medium',timeStyle:'short'})}`);
+    console.log(`  Latest run   : ${new Date(timestamps[0]).toLocaleString('en-US',{dateStyle:'medium',timeStyle:'short'})}`);
   }
 
-  // Show latest run snapshot first so it matches what FlakyReporter printed
   printLatestRunSnapshot(tracker);
 
-  let summaries: FlakyTestSummary[];
+  const summaries = days !== undefined
+    ? analyzer.getFlakySince(days, { minRuns })
+    : analyzer.analyze({ minRuns });
 
-  if (days !== undefined) {
-    console.log(`\n  Scope: last ${days} day(s), min ${minRuns} run(s)`);
-    summaries = analyzer.getFlakySince(days, { minRuns });
-  } else {
-    console.log(`\n  Scope: all ${timestamps.length} run(s), min ${minRuns} run(s)`);
-    summaries = analyzer.analyze({ minRuns });
-  }
+  console.log(`\n  Scope: ${days !== undefined ? `last ${days} day(s)` : `all ${timestamps.length} run(s)`}, min ${minRuns} run(s)`);
 
   printReport(summaries);
 
-  // Exit non-zero if there are any failing or critical/high flaky tests.
   const hasProblems = summaries.some(
-    (s) =>
-      s.category === 'consistently_failing' ||
-      (s.category === 'flaky' && (s.severity === 'critical' || s.severity === 'high'))
+    (s) => s.category === 'consistently_failing' ||
+           (s.category === 'flaky' && (s.severity === 'critical' || s.severity === 'high'))
   );
   process.exit(hasProblems ? 1 : 0);
 }
