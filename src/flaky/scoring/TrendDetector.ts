@@ -1,28 +1,26 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // src/flaky/scoring/TrendDetector.ts
 //
-// Feature 3 — Trend detection: is a test getting worse, stable, or recovering?
+// Feature 3 — Trend detection: rising / stable / recovering / new
 //
 // Algorithm:
-//   Split the run history into two windows of equal size (default: 5 runs each).
-//   Calculate instabilityRate for each window = (flaky + failed) / total
-//   Compare them:
-//     delta > +THRESHOLD  → rising   (getting worse)  ⬆️
-//     delta < -THRESHOLD  → recovering (getting better) ⬇️
-//     else                → stable   →
-//     totalRuns < 4       → new      🆕
-//
-// The threshold prevents noise from a single run flipping the trend label.
+//   Split run history into two equal windows (default: 5 each).
+//   instabilityRate = (flaky + failed) / total per window
+//   delta = recentInstability - prevInstability
+//   delta > +threshold  → rising   ⬆️
+//   delta < -threshold  → recovering ⬇️
+//   else                → stable   →
+//   totalRuns < 4       → new      🆕
 // ─────────────────────────────────────────────────────────────────────────────
-import type { TestRunRecord } from '../types';
-import type { TrendResult, TrendDirection } from './types';
+import type { TestRunRecord, TrendDirection } from '../types';
+import type { TrendResult } from './types';
 
-const DEFAULT_WINDOW  = 5;   // runs per window
-const DEFAULT_THRESHOLD = 0.15; // 15% delta needed to call a trend
+const DEFAULT_WINDOW    = 5;
+const DEFAULT_THRESHOLD = 0.15;
 
 export class TrendDetector {
-  private readonly windowSize  : number;
-  private readonly threshold   : number;
+  private readonly windowSize : number;
+  private readonly threshold  : number;
 
   constructor(windowSize = DEFAULT_WINDOW, threshold = DEFAULT_THRESHOLD) {
     this.windowSize = windowSize;
@@ -30,46 +28,37 @@ export class TrendDetector {
   }
 
   /**
-   * Detect the trend for a test given its run records (newest-first).
+   * Detect trend for a test given its run records (newest-first).
    */
   detect(records: TestRunRecord[]): TrendResult {
     const totalRuns = records.length;
 
-    // Not enough data to determine a trend
     if (totalRuns < 4) {
       return {
-        direction        : 'new',
-        recentInstability: this.instabilityRate(records),
-        prevInstability  : 0,
-        delta            : 0,
-        windowSize       : totalRuns,
+        direction         : 'new',
+        recentInstability : this.instabilityRate(records),
+        prevInstability   : 0,
+        delta             : 0,
+        windowSize        : totalRuns,
       };
     }
 
-    // Records are newest-first; take the most recent window first
+    // records are newest-first
     const recentWindow = records.slice(0, this.windowSize);
     const prevWindow   = records.slice(this.windowSize, this.windowSize * 2);
 
     const recentInstability = this.instabilityRate(recentWindow);
     const prevInstability   = prevWindow.length > 0
       ? this.instabilityRate(prevWindow)
-      : recentInstability; // only one window available
+      : recentInstability;
 
     const delta     = recentInstability - prevInstability;
     const direction = this.classify(delta, prevWindow.length);
 
-    return {
-      direction,
-      recentInstability,
-      prevInstability,
-      delta,
-      windowSize: this.windowSize,
-    };
+    return { direction, recentInstability, prevInstability, delta, windowSize: this.windowSize };
   }
 
-  /**
-   * Return a display string for a trend direction.
-   */
+  /** Full display label for a trend direction. */
   static label(direction: TrendDirection): string {
     switch (direction) {
       case 'rising'    : return '⬆️  Rising';
@@ -79,9 +68,7 @@ export class TrendDetector {
     }
   }
 
-  /**
-   * Return a short emoji for compact display.
-   */
+  /** Short icon for compact display. */
   static icon(direction: TrendDirection): string {
     switch (direction) {
       case 'rising'    : return '⬆️';
@@ -91,10 +78,8 @@ export class TrendDetector {
     }
   }
 
-  // ── Private helpers ────────────────────────────────────────────────────────
-
   private instabilityRate(records: TestRunRecord[]): number {
-    if (records.length === 0) return 0;
+    if (!records.length) return 0;
     const unstable = records.filter(
       (r) => r.flakyInThisRun ||
              r.finalStatus === 'failed' ||
@@ -103,9 +88,8 @@ export class TrendDetector {
     return unstable / records.length;
   }
 
-  private classify(delta: number, prevWindowLength: number): TrendDirection {
-    // If there's no previous window we can't compare
-    if (prevWindowLength === 0) return 'stable';
+  private classify(delta: number, prevLen: number): TrendDirection {
+    if (prevLen === 0)          return 'stable';
     if (delta > this.threshold)  return 'rising';
     if (delta < -this.threshold) return 'recovering';
     return 'stable';

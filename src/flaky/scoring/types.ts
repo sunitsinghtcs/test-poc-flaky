@@ -1,55 +1,23 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// src/flaky/scoring/types.ts  –  Types for Feature 1 & 3
+// src/flaky/scoring/types.ts
 // ─────────────────────────────────────────────────────────────────────────────
+import type { RunOutcome, TrendDirection } from '../types';
 
-/**
- * The outcome of a single run for scoring purposes.
- * Used by the flip-rate algorithm to detect state changes.
- */
-export type RunOutcome = 'pass' | 'flaky' | 'fail';
+export type { RunOutcome, TrendDirection };
 
-/**
- * Feature 1 — Per-test stability score.
- *
- * Based on Apple's flip rate algorithm:
- * "Modeling and Ranking Flaky Tests at Apple" (ICSE 2022)
- *
- * flipRate    = stateChanges / (totalRuns - 1)
- *               where stateChange = consecutive runs with different outcomes
- *
- * stabilityScore = round((1 - flipRate) * 100)
- *               100 = perfectly stable, 0 = changes every single run
- */
+/** Feature 1 — Result of the stability score calculation for one test. */
 export interface StabilityResult {
   /** 0–100. Higher = more stable. */
   stabilityScore: number;
-  /**
-   * Raw flip rate: 0.0 – 1.0.
-   * How often consecutive runs produce a different outcome.
-   */
+  /** Raw flip rate 0–1. How often consecutive runs differ. */
   flipRate: number;
   /** Number of consecutive-run state changes observed. */
   stateChanges: number;
-  /** Ordered list of outcomes used to calculate the score (oldest → newest). */
+  /** Ordered outcomes used to compute the score (oldest → newest). */
   outcomeHistory: RunOutcome[];
 }
 
-/**
- * Feature 3 — Trend direction.
- *
- * Compares the instability rate of the most recent N runs
- * against the N runs before that.
- *
- * rising     — getting worse  ⬆️
- * stable     — no significant change  →
- * recovering — getting better  ⬇️
- * new        — fewer than 4 total runs, not enough data
- */
-export type TrendDirection = 'rising' | 'stable' | 'recovering' | 'new';
-
-/**
- * Feature 3 — Full trend result with context.
- */
+/** Feature 3 — Full trend result with comparison context. */
 export interface TrendResult {
   direction: TrendDirection;
   /** Instability rate in the recent window (flaky+fail / total). */
