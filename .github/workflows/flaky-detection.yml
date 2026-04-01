@@ -2,9 +2,11 @@ name: Playwright Flaky Test Detection
 
 on:
   push:
-    branches: [main]
+    branches:
+      - '**'          # trigger on ALL branch pushes
   pull_request:
-    branches: [main]
+    branches:
+      - '**'
   schedule:
     - cron: '0 2 * * *'
   workflow_dispatch:
@@ -28,6 +30,7 @@ jobs:
           node-version: '24'
           cache: 'npm'
 
+      # Cache flaky + heal store per branch so history accumulates across runs
       - name: Restore flaky store cache
         uses: actions/cache@v4.2.3
         with:
@@ -44,6 +47,7 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium firefox webkit
 
+      # Run tests — continue even if tests fail so analysis always runs
       - name: Run Playwright tests
         run: npm run test:ci
         continue-on-error: true
@@ -60,7 +64,8 @@ jobs:
         run: npm run report:html:ci
         continue-on-error: true
 
-      - name: Upload Playwright report
+      # ── Artifacts ─────────────────────────────────────────────────────────────
+      - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4.6.2
         with:
@@ -68,7 +73,7 @@ jobs:
           path: playwright-report/
           retention-days: 14
 
-      - name: Upload flaky HTML report
+      - name: Upload flaky analysis HTML report
         if: always()
         uses: actions/upload-artifact@v4.6.2
         with:
@@ -92,16 +97,19 @@ jobs:
           path: flaky-results/heal-store.json
           retention-days: 30
 
+      # ── GitHub Actions job summary ─────────────────────────────────────────────
       - name: Write job summary
         if: always()
         run: |
           echo "## Flaky Test Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           npm run flaky:analyze 2>&1 || true >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Self-Healing Report" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           npm run healing:analyze 2>&1 || true >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "📄 Download the interactive HTML report from the **flaky-html-report** artifact above." >> $GITHUB_STEP_SUMMARY
+          echo "📄 Download the **flaky-html-report** artifact for the full interactive dashboard." >> $GITHUB_STEP_SUMMARY
