@@ -59,10 +59,37 @@ function buildTimeline(records: TestRunRecord[]): RunPoint[] {
 }
 
 // ── Suite health score ────────────────────────────────────────────────────────
+//
+// Formula (same logic used by Atlassian Flakinator & BuildPulse):
+//
+//   base       = (cleanPassRuns / total) × 100        — clean pass rate (60% weight)
+//   flakyPenalty = (flakyCount / total) × 30          — each flaky test costs up to 30pts
+//   failPenalty  = (failingCount / total) × 40        — each failing test costs up to 40pts
+//   criticalHit  = criticalCount × 3                  — extra per critical severity test
+//   highHit      = highCount × 1.5
+//
+//   score = max(0, min(100, base - flakyPenalty - failPenalty - criticalHit - highHit))
+//
+// Stability score (flip rate) is intentionally NOT used here because a test
+// that ALWAYS fails has flipRate=0 → stabilityScore=100, which would falsely
+// make the suite look healthy. Health must reflect pass/fail outcomes.
+//
 function suiteHealthScore(summaries: FlakyTestSummary[]): number {
   if (!summaries.length) return 100;
-  const avg = summaries.reduce((s, x) => s + x.stabilityScore, 0) / summaries.length;
-  return Math.round(avg);
+  const total    = summaries.length;
+  const clean    = summaries.filter(s => s.category === 'clean').length;
+  const flaky    = summaries.filter(s => s.category === 'flaky').length;
+  const failing  = summaries.filter(s => s.category === 'consistently_failing').length;
+  const critical = summaries.filter(s => s.severity === 'critical' && s.category === 'flaky').length;
+  const high     = summaries.filter(s => s.severity === 'high'     && s.category === 'flaky').length;
+
+  const base          = (clean   / total) * 100;
+  const flakyPenalty  = (flaky   / total) * 30;
+  const failPenalty   = (failing / total) * 40;
+  const criticalHit   = critical * 3;
+  const highHit       = high     * 1.5;
+
+  return Math.max(0, Math.min(100, Math.round(base - flakyPenalty - failPenalty - criticalHit - highHit)));
 }
 
 // ── Browser breakdown ─────────────────────────────────────────────────────────
@@ -81,7 +108,11 @@ function buildBrowserRows(summaries: FlakyTestSummary[]): BrowserRow[] {
   }
   for (const r of map.values()) {
     r.passRate = r.total > 0 ? Math.round((r.clean / r.total) * 100) : 0;
-    r.avgScore = r.total > 0 ? Math.round(r.avgScore / r.total) : 100;
+    // Health score per browser — same formula as suiteHealthScore
+    const base        = r.total > 0 ? (r.clean   / r.total) * 100 : 100;
+    const flakyP      = r.total > 0 ? (r.flaky   / r.total) * 30  : 0;
+    const failP       = r.total > 0 ? (r.failing / r.total) * 40  : 0;
+    r.avgScore = Math.max(0, Math.min(100, Math.round(base - flakyP - failP)));
   }
   return [...map.values()].sort((a, b) => b.passRate - a.passRate);
 }
@@ -333,7 +364,7 @@ footer span{font-size:10px;color:var(--text3)}
     <div class="rl"><span class="n" style="color:${hColor}">${health}</span><span class="s">/100</span></div>
   </div>
   <div class="health-text">
-    <h2>Avg Stability: <span style="color:${hColor}">${hLabel}</span></h2>
+    <h2>Suite Health: <span style="color:${hColor}">${hLabel}</span></h2>
     <p>${total} test+browser combinations across ${totalRuns} run${totalRuns !== 1 ? 's' : ''}.
     ${clean} always clean (${passRate}%), ${flaky} non-deterministic, ${failing} consistently failing.
     ${healRecs.length > 0 ? `Self-healing intercepted ${healRecs.length} locator failure${healRecs.length !== 1 ? 's' : ''}.` : ''}</p>
@@ -352,7 +383,7 @@ footer span{font-size:10px;color:var(--text3)}
   <div class="kpi" style="--ac:var(--green)"><div class="kl">Pass Rate</div><div class="kv">${passRate}%</div><div class="ks">${clean} clean tests</div></div>
   <div class="kpi" style="--ac:var(--amber)"><div class="kl">Flaky Rate</div><div class="kv">${flakyRate}%</div><div class="ks">${flaky} non-deterministic</div></div>
   <div class="kpi" style="--ac:var(--red)"><div class="kl">Fail Rate</div><div class="kv">${failRate}%</div><div class="ks">${failing} always failing</div></div>
-  <div class="kpi" style="--ac:${avgScore >= 80 ? 'var(--green)' : avgScore >= 60 ? 'var(--amber)' : 'var(--red)'}"><div class="kl">Avg Stability</div><div class="kv">${avgScore}/100</div><div class="ks">flip-rate score</div></div>
+  <div class="kpi" style="--ac:${avgScore >= 80 ? 'var(--green)' : avgScore >= 60 ? 'var(--amber)' : 'var(--red)'}"><div class="kl">Suite Health</div><div class="kv">${avgScore}/100</div><div class="ks">pass/fail health</div></div>
   <div class="kpi" style="--ac:${rising > 0 ? 'var(--red)' : 'var(--green)'}"><div class="kl">Rising Trend</div><div class="kv">${rising}</div><div class="ks">getting worse</div></div>
   <div class="kpi" style="--ac:${Number(avgDur) > 5 ? 'var(--amber)' : 'var(--green)'}"><div class="kl">Avg Duration</div><div class="kv">${avgDur}s</div><div class="ks">per attempt</div></div>
   <div class="kpi" style="--ac:var(--purple)"><div class="kl">Auto-healed</div><div class="kv">${healRecs.length}</div><div class="ks">locator recoveries</div></div>
@@ -401,7 +432,7 @@ footer span{font-size:10px;color:var(--text3)}
       <span class="dc">${d.cnt}</span>
     </div>`).join('')}
     <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px">
-      <span style="font-size:10px;color:var(--text3)">Suite avg:</span>
+      <span style="font-size:10px;color:var(--text3)">Suite health:</span>
       <span style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:${hColor}">${avgScore}/100</span>
     </div>
   </div>
