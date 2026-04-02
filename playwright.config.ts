@@ -32,7 +32,7 @@ export default defineConfig({
    *   printSummary   – print a flaky summary to stdout at the end (default: true)
    */
   reporter: [
-    ['html'],
+    ['html', { open: 'never', outputFolder: 'playwright-report' }],
     [
       './src/flaky/FlakyReporter',
       {
