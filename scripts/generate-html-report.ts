@@ -205,6 +205,8 @@ h1{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;background:linea
 .ring .rl{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .ring .rl .n{font-family:'Syne',sans-serif;font-size:22px;font-weight:800}
 .ring .rl .s{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px}
+.ring.critical-pulse{animation:critpulse 2s ease-in-out infinite}
+@keyframes critpulse{0%,100%{filter:drop-shadow(0 0 0px #ef444400)}50%{filter:drop-shadow(0 0 8px #ef4444aa)}}
 .health-text h2{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:5px}
 .health-text p{color:var(--text2);font-size:12px;line-height:1.6;max-width:480px}
 .hbadges{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
@@ -344,13 +346,15 @@ footer span{font-size:10px;color:var(--text3)}
 
 <!-- Health Score Banner -->
 <div class="health-banner">
-  <div class="ring">
+  <div class="ring${health === 0 ? ' critical-pulse' : ''}">
     <svg viewBox="0 0 110 110" width="110" height="110">
       <circle fill="none" stroke="var(--border2)" stroke-width="8" cx="55" cy="55" r="46"/>
       <circle fill="none" stroke="${hColor}" stroke-width="8" stroke-linecap="round"
         cx="55" cy="55" r="46"
         stroke-dasharray="${(2 * Math.PI * 46).toFixed(2)}"
-        stroke-dashoffset="${(2 * Math.PI * 46 * (1 - health / 100)).toFixed(2)}"/>
+        stroke-dashoffset="${health === 0
+          ? (2 * Math.PI * 46 * 0.985).toFixed(2)
+          : (2 * Math.PI * 46 * (1 - health / 100)).toFixed(2)}"/>
     </svg>
     <div class="rl">
       <span class="n" style="color:${hColor}">${health}</span>
@@ -626,9 +630,10 @@ function sbadge(s) {
 }
 
 function scoreRing(score, title) {
-  var c = score>=90?'#22c55e':score>=70?'#86efac':score>=50?'#f59e0b':score>=25?'#f97316':'#ef4444';
+  var c    = score>=90?'#22c55e':score>=70?'#86efac':score>=50?'#f59e0b':score>=25?'#f97316':'#ef4444';
   var circ = 2*Math.PI*13;
-  var off  = circ*(1-score/100);
+  // When score=0, show a tiny 1.5% sliver so the ring color is still visible
+  var off  = score === 0 ? circ * 0.985 : circ * (1 - score / 100);
   return '<div class="smr-wrap" title="'+title+'">'
     +'<div class="smr"><svg viewBox="0 0 34 34" width="34" height="34">'
     +'<circle fill="none" stroke="var(--border2)" stroke-width="3" cx="17" cy="17" r="13"/>'
